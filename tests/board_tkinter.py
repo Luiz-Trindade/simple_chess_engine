@@ -3,91 +3,118 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from utils import *
 
-# Estado do jogo
-history = []
+# Mapeamento inicial das posições (Casa 1 = a1, Casa 64 = h8)
+posicoes_iniciais = {
+    "white-rook": [1, 8],
+    "white-knight": [2, 7],
+    "white-bishop": [3, 6],
+    "white-queen": [4],
+    "white-king": [5],
+    "white-pawn": [9, 10, 11, 12, 13, 14, 15, 16],
+    "black-rook": [57, 64],
+    "black-knight": [58, 63],
+    "black-bishop": [59, 62],
+    "black-queen": [60],
+    "black-king": [61],
+    "black-pawn": [49, 50, 51, 52, 53, 54, 55, 56],
+}
+
+# Variáveis globais de estado
 origem = None
+peca_selecionada_id = None
+pecas_no_canvas = {}  # Armazena ID do canvas -> {nome, casa}
+
+
+def casa_para_coordenadas(posicao):
+    """Converte 1-64 para (x, y) central da casa."""
+    pos = posicao - 1
+    coluna = pos % 8
+    linha = 7 - (pos // 8)
+    return coluna * 50 + 25, linha * 50 + 25
 
 
 def get_notation(linha, coluna):
-    """Converte índice (0-7, 0-7) para notação a1-h8."""
-    col_letter = chr(ord("a") + coluna)
-    row_number = 8 - linha
-    return f"{col_letter}{row_number}"
+    return f"{chr(ord('a') + coluna)}{8 - linha}"
 
 
 def clicar_casa(event):
-    global origem
+    global origem, peca_selecionada_id
 
-    # Cálculo da casa clicada (considerando o tabuleiro visual 8x8)
     coluna = event.x // 50
     linha = event.y // 50
-
-    # Lógica: o Tkinter desenha linha 0 (topo) até 7 (base)
-    # No xadrez, a base é a linha 1.
     casa_clicada = ((7 - linha) * 8) + coluna + 1
-
-    x_grid = coluna * 50
-    y_grid = linha * 50
+    x_grid, y_grid = coluna * 50, linha * 50
 
     if origem is None:
-        origem = casa_clicada
-        # Desenha destaque
-        canvas.create_rectangle(
-            x_grid,
-            y_grid,
-            x_grid + 50,
-            y_grid + 50,
-            outline="green",
-            width=5,
-            tags="destaque",
-        )
-        print(f"Origem selecionada: {casa_clicada}")
+        # Selecionar peça
+        itens = canvas.find_overlapping(event.x, event.y, event.x, event.y)
+        for item in itens:
+            if item in pecas_no_canvas:
+                origem = casa_clicada
+                peca_selecionada_id = item
+                canvas.create_rectangle(
+                    x_grid,
+                    y_grid,
+                    x_grid + 50,
+                    y_grid + 50,
+                    outline="green",
+                    width=5,
+                    tags="destaque",
+                )
+                return
     else:
+        # Tentar mover
         destino = casa_clicada
-        if verify_move("queen", origem, destino):
-            print(f"Movimento válido de {origem} para {destino}")
-            canvas.coords(peca, x_grid + 25, y_grid + 25)
-            history.append(f"q{origem}-{destino}")
+        info_peca = pecas_no_canvas[peca_selecionada_id]
+
+        # O verify_move assume o nome da peça (ex: 'queen')
+        nome_curto = info_peca["nome"].split("-")[1]
+
+        if verify_move(nome_curto, origem, destino):
+            canvas.coords(peca_selecionada_id, x_grid + 25, y_grid + 25)
+            info_peca["casa"] = destino
+            print(f"Movido de {origem} para {destino}")
         else:
-            print(f"Movimento inválido de {origem} para {destino}")
+            print("Movimento inválido")
 
         canvas.delete("destaque")
         origem = None
+        peca_selecionada_id = None
 
 
-# Configuração da Janela
+# Configuração
 root = tk.Tk()
 root.title("Tabuleiro de Xadrez")
 canvas = tk.Canvas(root, width=400, height=400)
 canvas.pack()
 
-# Caminho da imagem
+# Carregar imagens
 base_dir = os.path.dirname(os.path.abspath(__file__))
-caminho_imagem = os.path.join(base_dir, "..", "assets", "white-queen.png")
+imagens = {}
+for nome in posicoes_iniciais.keys():
+    path = os.path.join(base_dir, "..", "assets", f"{nome}.png")
+    if os.path.exists(path):
+        img = (
+            Image.open(path).convert("RGBA").resize((40, 40), Image.Resampling.LANCZOS)
+        )
+        imagens[nome] = ImageTk.PhotoImage(img)
 
-# Carrega a imagem
-img_origem = Image.open(caminho_imagem).convert("RGBA")
-img_resized = img_origem.resize((40, 40), Image.Resampling.LANCZOS)
-img_peca = ImageTk.PhotoImage(img_resized)
-
-# Desenhar o tabuleiro e a numeração
+# Desenhar tabuleiro e peças
 for linha in range(8):
     for coluna in range(8):
-        x = coluna * 50
-        y = linha * 50
-
-        # Cor das casas
-        cor = "white" if (linha + coluna) % 2 == 0 else "black"
+        x, y = coluna * 50, linha * 50
+        cor = "white" if (linha + coluna) % 2 == 0 else "gray"
         canvas.create_rectangle(x, y, x + 50, y + 50, fill=cor)
-
-        # Desenha a notação a1-h8
-        texto = get_notation(linha, coluna)
         canvas.create_text(
-            x + 15, y + 15, text=texto, fill="gray", font=("Arial", 8, "bold")
+            x + 10, y + 10, text=get_notation(linha, coluna), font=("Arial", 7)
         )
 
-# Inicializa a peça na casa 1 (a1) -> coluna 0, linha 7
-peca = canvas.create_image(25, 375, image=img_peca, tags="peca")
+for nome, casas in posicoes_iniciais.items():
+    if nome in imagens:
+        for pos in casas:
+            cx, cy = casa_para_coordenadas(pos)
+            obj_id = canvas.create_image(cx, cy, image=imagens[nome], tags="peca")
+            pecas_no_canvas[obj_id] = {"nome": nome, "casa": pos}
 
 canvas.bind("<Button-1>", clicar_casa)
 root.mainloop()
