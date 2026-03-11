@@ -34,6 +34,7 @@ def verify_if_is_same_line(start, end):
         return False
 
 
+# Falta implementar a lógica de movimento do peão
 def verify_move(piece, start, end):
     if start == end:
         return False  # A peça não se moveu
