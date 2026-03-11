@@ -96,3 +96,18 @@ def verify_if_square_is_free(peca_origem, position):
             f"[{peca_origem}] quer mover para a casa {position}, mas está OCUPADA por [{peca_destino}]."
         )
         return False
+
+
+def execute_simple_chess_engine(playing_as="black"):
+    """
+    Função simples para simular o movimento do computador.
+
+    Passos Teóricos de um Motor de Xadrez Simples:
+    1. Avaliação do Tabuleiro: O motor analisa o estado atual do tabuleiro, identificando as peças, suas posições e possíveis ameaças.
+    2. Geração de Movimentos: O motor gera uma lista de movimentos legais para as peças do jogador (neste caso, para as peças pretas).
+    3. Avaliação de Movimentos: Para cada movimento gerado, o motor avalia o resultado potencial do movimento, considerando fatores como ganho de material, controle do centro, segurança do rei, etc.
+    4. Seleção do Melhor Movimento: O motor seleciona o movimento que tem a melhor avaliação, ou seja, aquele que maximiza as chances de vitória ou minimiza as chances de derrota.
+    5. Execução do Movimento: O motor executa o movimento selecionado, atualizando o estado do tabuleiro e preparando-se para a próxima jogada do jogador.
+    """
+    print("Bem-vindo ao Simple Chess Engine!")
+    print(f"Eu, o computador, estou jogando de '{playing_as}'")

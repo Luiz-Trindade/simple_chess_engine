@@ -19,6 +19,15 @@ posicoes_iniciais = {
     "black-pawn": [49, 50, 51, 52, 53, 54, 55, 56],
 }
 
+pecas_pontos = {
+    "pawn": 1,
+    "knight": 3,
+    "bishop": 3,
+    "rook": 5,
+    "queen": 9,
+    "king": 0,  # O rei é inestimável, mas para fins de avaliação, pode ser considerado 0
+}
+
 # Variáveis globais de estado
 origem = None
 peca_selecionada_id = None
@@ -73,12 +82,17 @@ def clicar_casa(event):
         destino = casa_clicada
         info_peca = pecas_no_canvas[peca_selecionada_id]
 
+        # O nome da peça é algo como 'white-queen', e queremos extrair 'queen' para a lógica de movimento
+        tipo_peca = info_peca["nome"].split("-")[0]
+
         # O verify_move assume o nome da peça (ex: 'queen')
         nome_curto = info_peca["nome"].split("-")[1]
 
         # Validação gráfica e lógica
-        if verify_move(nome_curto, origem, destino) and verify_if_square_is_free(
-            info_peca["nome"], destino
+        if (
+            verify_move(nome_curto, origem, destino)
+            and verify_if_square_is_free(info_peca["nome"], destino)
+            and tipo_peca == "white"
         ):
             # 1. Move a imagem na tela
             canvas.coords(peca_selecionada_id, x_grid + 25, y_grid + 25)
@@ -89,7 +103,9 @@ def clicar_casa(event):
             board[destino - 1] = info_peca["nome"]
 
             print(f"Movido de {origem} para {destino}")
-            # print(f"Estado da casa de destino no board: {board[destino - 1]}")
+
+            # 3. Vez do computador (movimento aleatório para teste)
+            execute_simple_chess_engine(playing_as="black")
         else:
             print("Movimento inválido")
 
