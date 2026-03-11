@@ -1,30 +1,27 @@
-from utils import *
+import os
 import tkinter as tk
+from PIL import Image, ImageTk
+from utils import *
 
 # Estado do jogo
-counter = 1
 history = []
 origem = None
-peca_selecionada = None
 
 
 def clicar_casa(event):
-    global origem, peca_selecionada
+    global origem
 
-    # Converte pixel para casa (0-63) e coordenadas de grade (0-7)
     coluna = event.x // 50
     linha = event.y // 50
     casa_clicada = (linha * 8) + coluna + 1
 
-    # Coordenadas do canto superior esquerdo da casa
     x_grid = coluna * 50
     y_grid = linha * 50
 
     if origem is None:
-        # Primeiro clique: seleciona a casa de origem
         origem = casa_clicada
-        # Desenha um retângulo verde para destacar a seleção
-        peca_selecionada = canvas.create_rectangle(
+        # Desenha destaque
+        canvas.create_rectangle(
             x_grid,
             y_grid,
             x_grid + 50,
@@ -35,25 +32,18 @@ def clicar_casa(event):
         )
         print(f"Origem selecionada: {origem}")
     else:
-        # Segundo clique: tenta mover para o destino
         destino = casa_clicada
 
-        # Aqui você chamaria: if verify_move("rook", origem, destino):
         if verify_move("knight", origem, destino):
             print(f"Movimento válido de {origem} para {destino}")
-            # Movemos o círculo para o centro da nova casa
-            # (Apenas para exemplo visual, aqui entra a validação da peça)
-            canvas.coords(peca, x_grid + 5, y_grid + 5, x_grid + 45, y_grid + 45)
-
+            # Corrigido: Centralizando em 25, 25 (centro da casa 50x50)
+            canvas.coords(peca, x_grid + 25, y_grid + 25)
             history.append(f"k{origem}-{destino}")
-            print(f"Histórico: {history}")
         else:
             print(f"Movimento inválido de {origem} para {destino}")
 
-        # Limpa o estado
         canvas.delete("destaque")
         origem = None
-        peca_selecionada = None
 
 
 # Configuração da Janela
@@ -61,16 +51,23 @@ root = tk.Tk()
 canvas = tk.Canvas(root, width=400, height=400)
 canvas.pack()
 
+# Corrigido: Subindo um nível (..) para sair da pasta 'tests' e entrar em 'assets'
+base_dir = os.path.dirname(os.path.abspath(__file__))
+caminho_imagem = os.path.join(base_dir, "..", "assets", "white-knight.png")
+
+# Carrega a imagem
+img_origem = Image.open(caminho_imagem).convert("RGBA")
+img_resized = img_origem.resize((40, 40), Image.Resampling.LANCZOS)
+img_peca = ImageTk.PhotoImage(img_resized)
+
 # Desenhar o tabuleiro
 for i in range(8):
     for j in range(8):
         cor = "white" if (i + j) % 2 == 0 else "black"
         canvas.create_rectangle(i * 50, j * 50, i * 50 + 50, j * 50 + 50, fill=cor)
 
-# Peça exemplo
-peca = canvas.create_oval(10, 10, 40, 40, fill="red", tags="peca")
+# Inicializa a peça no centro da casa 1 (coordenadas iniciais)
+peca = canvas.create_image(25, 25, image=img_peca, tags="peca")
 
-# Bind do clique no canvas inteiro
 canvas.bind("<Button-1>", clicar_casa)
-
 root.mainloop()
