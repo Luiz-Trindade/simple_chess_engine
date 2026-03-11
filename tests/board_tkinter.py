@@ -2,6 +2,8 @@ from utils import *
 import tkinter as tk
 
 # Estado do jogo
+counter = 1
+history = []
 origem = None
 peca_selecionada = None
 
@@ -28,7 +30,7 @@ def clicar_casa(event):
             x_grid + 50,
             y_grid + 50,
             outline="green",
-            width=3,
+            width=5,
             tags="destaque",
         )
         print(f"Origem selecionada: {origem}")
@@ -37,11 +39,14 @@ def clicar_casa(event):
         destino = casa_clicada
 
         # Aqui você chamaria: if verify_move("rook", origem, destino):
-        if verify_move("rook", origem, destino):
+        if verify_move("knight", origem, destino):
             print(f"Movimento válido de {origem} para {destino}")
             # Movemos o círculo para o centro da nova casa
             # (Apenas para exemplo visual, aqui entra a validação da peça)
             canvas.coords(peca, x_grid + 5, y_grid + 5, x_grid + 45, y_grid + 45)
+
+            history.append(f"k{origem}-{destino}")
+            print(f"Histórico: {history}")
         else:
             print(f"Movimento inválido de {origem} para {destino}")
 
@@ -59,7 +64,7 @@ canvas.pack()
 # Desenhar o tabuleiro
 for i in range(8):
     for j in range(8):
-        cor = "white" if (i + j) % 2 == 0 else "gray"
+        cor = "white" if (i + j) % 2 == 0 else "black"
         canvas.create_rectangle(i * 50, j * 50, i * 50 + 50, j * 50 + 50, fill=cor)
 
 # Peça exemplo

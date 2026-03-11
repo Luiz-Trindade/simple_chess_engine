@@ -1,3 +1,5 @@
+history = []
+
 board = [None for _ in range(64)]
 border_top = [1, 2, 3, 4, 5, 6, 7, 8]
 border_down = [57, 58, 59, 60, 61, 62, 63, 64]
