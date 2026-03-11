@@ -80,6 +80,19 @@ def verify_move(piece, start, end):
     return False
 
 
-def verify_if_square_is_free(position):
-    print(f"Verificando se a casa {position} está livre...")
-    return board[position - 1] is None
+def verify_if_square_is_free(peca_origem, position):
+    """
+    Verifica se a casa de destino está livre e printa a interação.
+    peca_origem: O nome da peça que está tentando se mover (ex: 'white-queen')
+    position: O número da casa de destino (1 a 64)
+    """
+    peca_destino = board[position - 1]
+
+    if peca_destino is None:
+        print(f"[{peca_origem}] quer mover para a casa {position}, que está LIVRE.")
+        return True
+    else:
+        print(
+            f"[{peca_origem}] quer mover para a casa {position}, mas está OCUPADA por [{peca_destino}]."
+        )
+        return False

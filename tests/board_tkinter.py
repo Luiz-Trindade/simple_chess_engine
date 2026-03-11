@@ -78,7 +78,7 @@ def clicar_casa(event):
 
         # Validação gráfica e lógica
         if verify_move(nome_curto, origem, destino) and verify_if_square_is_free(
-            destino
+            info_peca["nome"], destino
         ):
             # 1. Move a imagem na tela
             canvas.coords(peca_selecionada_id, x_grid + 25, y_grid + 25)
