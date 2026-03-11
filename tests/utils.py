@@ -125,15 +125,15 @@ def verify_if_square_is_free(peca_origem, position):
         return False
 
 
-def gerar_mapa_ameacas_brancas(board):
+def gerar_mapa_ameacas(board, verify="white"):
     """
-    Lista todas as casas 'ameaçadas' ou 'controladas' por peças brancas.
+    Lista todas as casas 'ameaçadas' ou 'controladas' por peças brancas ou pretas.
     """
     casas_controladas = set()
 
     for i in range(64):
         peca = board[i]
-        if peca and peca.startswith("white"):
+        if peca and peca.startswith(verify):
             tipo_peca = peca.split("-")[1]
             posicao_atual = i + 1
 
@@ -178,4 +178,4 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
     print("Bem-vindo ao Simple Chess Engine!")
     print(f"Eu, o computador, estou jogando de '{playing_as}'")
 
-    print(gerar_mapa_ameacas_brancas(board))
+    print(gerar_mapa_ameacas(board, verify="white"))
