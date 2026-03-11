@@ -52,6 +52,25 @@ def get_notation(linha, coluna):
     return f"{chr(ord('a') + coluna)}{8 - linha}"
 
 
+def atualizar_canvas_com_board():
+    # 1. Remove todas as peças existentes no canvas (que estão marcadas com a tag "peca")
+    canvas.delete("peca")
+
+    # 2. Limpa nosso dicionário de controle
+    pecas_no_canvas.clear()
+
+    # 3. Itera sobre o board e redesenha tudo
+    for posicao, nome_peca in enumerate(board):
+        if nome_peca is not None:
+            # Converte índice 0-63 para casa 1-64
+            casa_numero = posicao + 1
+            cx, cy = casa_para_coordenadas(casa_numero)
+
+            # Redesenha a imagem
+            obj_id = canvas.create_image(cx, cy, image=imagens[nome_peca], tags="peca")
+            pecas_no_canvas[obj_id] = {"nome": nome_peca, "casa": casa_numero}
+
+
 def clicar_casa(event):
     global origem, peca_selecionada_id
 
@@ -102,10 +121,11 @@ def clicar_casa(event):
             board[origem - 1] = None
             board[destino - 1] = info_peca["nome"]
 
+            atualizar_canvas_com_board()
             print(f"Movido de {origem} para {destino}")
 
             # 3. Vez do computador (movimento aleatório para teste)
-            execute_simple_chess_engine(playing_as="black")
+            execute_simple_chess_engine(playing_as="black", board=board)
         else:
             print("Movimento inválido")
 

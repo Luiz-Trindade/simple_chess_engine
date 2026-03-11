@@ -34,6 +34,32 @@ def verify_if_is_same_line(start, end):
         return False
 
 
+def path_is_clear(start, end):
+    diff = end - start
+    abs_diff = abs(diff)
+
+    # 1. Define o passo (step)
+    if verify_if_is_same_line(start, end):  # Horizontal tem prioridade
+        step = 1 if diff > 0 else -1
+    elif abs_diff % 8 == 0:
+        step = 8 if diff > 0 else -8
+    elif abs_diff % 9 == 0:
+        step = 9 if diff > 0 else -9
+    elif abs_diff % 7 == 0:
+        step = 7 if diff > 0 else -7
+    else:
+        return False
+
+    # 2. Verifica obstruções
+    curr = start + step
+    while curr != end:
+        if 1 <= curr <= 64:
+            if board[curr - 1] is not None:
+                return False
+        curr += step
+    return True
+
+
 # Falta implementar a lógica de movimento do peão
 def verify_move(piece, start, end):
     if start == end:
@@ -48,17 +74,17 @@ def verify_move(piece, start, end):
         return diff in [6, 10, 15, 17]
 
     # Bispo (Bishop) - Diagonal
-    if piece == "bishop":
+    if piece == "bishop" and path_is_clear(start, end):
         # Se for diagonal, a diferença é múltipla de 7 ou 9
         return diff % 9 == 0 or diff % 7 == 0
 
     # Torre (Rook) - Vertical ou Horizontal
-    if piece == "rook":
+    if piece == "rook" and path_is_clear(start, end):
         # Vertical: diff é múltiplo de 8 | Horizontal: estão na mesma linha
         return diff % 8 == 0 or verify_if_is_same_line(start, end)
 
     # Rainha (Queen)
-    if piece == "queen":
+    if piece == "queen" and path_is_clear(start, end):
         return (
             diff % 9 == 0
             or diff % 7 == 0
@@ -67,7 +93,7 @@ def verify_move(piece, start, end):
         )
 
     # Rei (King)
-    if piece == "king":
+    if piece == "king" and path_is_clear(start, end):
         # Distância de 1 (lado), 8 (cima/baixo), 7 ou 9 (diagonal)
         # O 'or verify_if_is_same_line' evita que o Rei pule de uma linha para outra
         # em movimentos laterais errados
@@ -99,7 +125,46 @@ def verify_if_square_is_free(peca_origem, position):
         return False
 
 
-def execute_simple_chess_engine(playing_as="black"):
+def gerar_mapa_ameacas_brancas(board):
+    """
+    Lista todas as casas 'ameaçadas' ou 'controladas' por peças brancas.
+    """
+    casas_controladas = set()
+
+    for i in range(64):
+        peca = board[i]
+        if peca and peca.startswith("white"):
+            tipo_peca = peca.split("-")[1]
+            posicao_atual = i + 1
+
+            # 1. Lógica para PEÕES (Ameaçam apenas as diagonais frontais)
+            if tipo_peca == "pawn":
+                # Peão branco na casa X ameaça X+7 e X+9 (se não estiver na borda)
+                borda = verify_if_is_border(posicao_atual)
+                if borda != "left":
+                    casas_controladas.add(posicao_atual + 7)
+                if borda != "right":
+                    casas_controladas.add(posicao_atual + 9)
+                continue
+
+            # 2. Lógica para as demais peças
+            for destino in range(1, 65):
+                if verify_move(tipo_peca, posicao_atual, destino):
+
+                    # Peças de "salto" ou curto alcance não precisam checar caminho livre
+                    if tipo_peca in ["knight", "king"]:
+                        casas_controladas.add(destino)
+
+                    # Peças "deslizantes" precisam de caminho limpo
+                    elif tipo_peca in ["rook", "bishop", "queen"]:
+                        if path_is_clear(posicao_atual, destino):
+                            casas_controladas.add(destino)
+
+    # Remove casas fora do tabuleiro (ex: peão na linha 8 ameaçando linha 9)
+    return {c for c in casas_controladas if 1 <= c <= 64}
+
+
+def execute_simple_chess_engine(playing_as="black", board=[]):
     """
     Função simples para simular o movimento do computador.
 
@@ -112,3 +177,5 @@ def execute_simple_chess_engine(playing_as="black"):
     """
     print("Bem-vindo ao Simple Chess Engine!")
     print(f"Eu, o computador, estou jogando de '{playing_as}'")
+
+    print(gerar_mapa_ameacas_brancas(board))
