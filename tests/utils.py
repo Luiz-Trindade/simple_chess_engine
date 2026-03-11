@@ -74,4 +74,12 @@ def verify_move(piece, start, end):
             (diff in [7, 8, 9]) or verify_if_is_same_line(start, end)
         )
 
+    if piece == "pawn":
+        pass
+
     return False
+
+
+def verify_if_square_is_free(position):
+    print(f"Verificando se a casa {position} está livre...")
+    return board[position - 1] is None

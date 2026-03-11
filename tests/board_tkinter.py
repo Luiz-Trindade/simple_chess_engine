@@ -24,6 +24,12 @@ origem = None
 peca_selecionada_id = None
 pecas_no_canvas = {}  # Armazena ID do canvas -> {nome, casa}
 
+# Preenche o array 'board' (importado de utils) com o estado inicial
+# Assumindo que board é uma lista de 64 elementos (índices 0 a 63)
+for nome, casas in posicoes_iniciais.items():
+    for pos in casas:
+        board[pos - 1] = nome
+
 
 def casa_para_coordenadas(posicao):
     """Converte 1-64 para (x, y) central da casa."""
@@ -70,10 +76,20 @@ def clicar_casa(event):
         # O verify_move assume o nome da peça (ex: 'queen')
         nome_curto = info_peca["nome"].split("-")[1]
 
-        if verify_move(nome_curto, origem, destino):
+        # Validação gráfica e lógica
+        if verify_move(nome_curto, origem, destino) and verify_if_square_is_free(
+            destino
+        ):
+            # 1. Move a imagem na tela
             canvas.coords(peca_selecionada_id, x_grid + 25, y_grid + 25)
             info_peca["casa"] = destino
+
+            # 2. Atualiza o array board importado de utils
+            board[origem - 1] = None
+            board[destino - 1] = info_peca["nome"]
+
             print(f"Movido de {origem} para {destino}")
+            # print(f"Estado da casa de destino no board: {board[destino - 1]}")
         else:
             print("Movimento inválido")
 
