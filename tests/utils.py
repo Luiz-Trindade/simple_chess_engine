@@ -42,11 +42,12 @@ def path_is_clear(start, end):
     diff = end - start
     abs_diff = abs(diff)
 
-    # 1. Define o passo (step)
-    if verify_if_is_same_line(start, end):  # Horizontal tem prioridade
+    # Define o passo (step)
+    if verify_if_is_same_line(start, end):
         step = 1 if diff > 0 else -1
     elif abs_diff % 8 == 0:
         step = 8 if diff > 0 else -8
+    # AQUI ESTÁ O SEGREDO PARA BISPOS/RAINHAS:
     elif abs_diff % 9 == 0:
         step = 9 if diff > 0 else -9
     elif abs_diff % 7 == 0:
@@ -54,13 +55,41 @@ def path_is_clear(start, end):
     else:
         return False
 
-    # 2. Verifica obstruções
-    curr = start + step
+    if step in [7, -7, 9, -9]:
+        col_start = (start - 1) % 8
+        col_end = (end - 1) % 8
+        row_start = (start - 1) // 8
+        row_end = (end - 1) // 8
+        # Em uma diagonal real, a distância entre colunas é igual à distância entre linhas
+        if abs(col_start - col_end) != abs(row_start - row_end):
+            return False
+
+    # VERIFICAÇÃO DE BORDA (O QUE FALTA NO SEU CÓDIGO):
+    # Se estivermos movendo na diagonal (passo 7 ou 9), não podemos permitir
+    # que a peça salte da coluna A para a H (ou vice-versa) durante o trajeto.
+    curr = start
     while curr != end:
-        if 1 <= curr <= 64:
-            if board[curr - 1] is not None:
-                return False
         curr += step
+
+        # Se a peça chegou no destino, está ok
+        if curr == end:
+            break
+
+        # Se o próximo passo sair do tabuleiro ou cruzar uma borda indevida
+        if not (1 <= curr <= 64):
+            return False
+
+        # Se a peça for 'atropelar' alguém, o caminho está bloqueado
+        if board[curr - 1] is not None:
+            return False
+
+        # TRUQUE DA BORDA: Se o passo for 7 ou 9 (diagonal),
+        # a casa atual e a anterior não podem estar na mesma coluna
+        # (a menos que seja o destino).
+        if step in [7, -7, 9, -9]:
+            if abs((curr % 8) - ((curr - step) % 8)) > 1:
+                return False  # Tentou pular colunas, movimento ilegal
+
     return True
 
 
@@ -80,7 +109,6 @@ def verify_target_square(cor_origem, position):
         return False  # É uma peça amiga, movimento bloqueado
 
 
-# Falta implementar a lógica de movimento do peão
 def verify_move(piece, start, end, color="white"):
     # Agora passamos a 'color' para saber se o alvo é amigo ou inimigo
     if start == end or not verify_target_square(color, end):
@@ -140,65 +168,3 @@ def verify_move(piece, start, end, color="white"):
             else:
                 return diff == 8 and end - start == -8
     return False
-
-
-# def gerar_mapa_ameacas(board, verify="white"):
-#     """
-#     Lista todas as casas 'ameaçadas' ou 'controladas' por peças brancas ou pretas.
-#     """
-#     casas_controladas = set()
-
-#     for i in range(64):
-#         peca = board[i]
-#         if peca and peca.startswith(verify):
-#             tipo_peca = peca.split("-")[1]
-#             posicao_atual = i + 1
-
-#             # 1. Lógica para PEÕES (Ameaçam apenas as diagonais frontais)
-#             if tipo_peca == "pawn":
-#                 # Peão branco na casa X ameaça X+7 e X+9 (se não estiver na borda)
-#                 borda = verify_if_is_border(posicao_atual)
-#                 if borda != "left":
-#                     casas_controladas.add(posicao_atual + 7)
-#                 if borda != "right":
-#                     casas_controladas.add(posicao_atual + 9)
-#                 continue
-
-#             # 2. Lógica para as demais peças
-#             for destino in range(1, 65):
-#                 if verify_move(tipo_peca, posicao_atual, destino):
-
-#                     # Peças de "salto" ou curto alcance não precisam checar caminho livre
-#                     if tipo_peca in ["knight", "king"]:
-#                         casas_controladas.add(destino)
-
-#                     # Peças "deslizantes" precisam de caminho limpo
-#                     elif tipo_peca in ["rook", "bishop", "queen"]:
-#                         if path_is_clear(posicao_atual, destino):
-#                             casas_controladas.add(destino)
-
-#     # Remove casas fora do tabuleiro (ex: peão na linha 8 ameaçando linha 9)
-#     return {c for c in casas_controladas if 1 <= c <= 64}
-
-
-# def execute_simple_chess_engine(playing_as="black", board=[]):
-#     """
-#     Função simples para simular o movimento do computador.
-
-#     Passos Teóricos de um Motor de Xadrez Simples:
-#     1. Avaliação do Tabuleiro: O motor analisa o estado atual do tabuleiro, identificando as peças, suas posições e possíveis ameaças.
-#     2. Geração de Movimentos: O motor gera uma lista de movimentos legais para as peças do jogador (neste caso, para as peças pretas).
-#     3. Avaliação de Movimentos: Para cada movimento gerado, o motor avalia o resultado potencial do movimento, considerando fatores como ganho de material, controle do centro, segurança do rei, etc.
-#     4. Seleção do Melhor Movimento: O motor seleciona o movimento que tem a melhor avaliação, ou seja, aquele que maximiza as chances de vitória ou minimiza as chances de derrota.
-#     5. Execução do Movimento: O motor executa o movimento selecionado, atualizando o estado do tabuleiro e preparando-se para a próxima jogada do jogador.
-#     """
-#     print("Bem-vindo ao Simple Chess Engine!")
-#     print(f"Eu, o computador, estou jogando de '{playing_as}'")
-
-#     opponet = "white" if playing_as == "black" else "black"
-
-#     opponet_threats = gerar_mapa_ameacas(board, verify=opponet)
-#     my_threats = gerar_mapa_ameacas(board, verify=playing_as)
-
-#     print(f"Casas ameaçadas por {opponet}: {len(opponet_threats)}")
-#     print(f"Casas ameaçadas por {playing_as}: {len(my_threats)}")
