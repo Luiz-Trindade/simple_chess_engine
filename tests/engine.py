@@ -1,3 +1,4 @@
+from random import *
 from utils import *
 
 board_center_squares = [27, 28, 29, 30, 31, 35, 36, 37, 38, 39]
@@ -212,6 +213,11 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
     print(f"Fase do jogo: {game_stage}")
     print(f"Casas ameaçadas por '{opponet}': {len(opponet_threats)}")
     print(f"Casas ameaçadas por '{playing_as}': {len(my_threats)}")
+    print(f"Minhas peças ameaçam as seguintes casas: {my_threats}")
+    print(f"Peças do oponente ameaçam as seguintes casas: {opponet_threats}")
+    print(
+        f"Peças que o oponente ameaça: {get_captureble_pieces(board, attacking_color=opponet)}"
+    )
 
     if game_stage == "oppening":
         print("Estratégia: Controle do centro e desenvolvimento de peças.")
@@ -232,15 +238,19 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
 
         # Selecionar das peças válidas, aquelas ameaçam o centro
         if valid_pieces_for_center:
-            print(
-                f"Peças com movimentos válidos para o centro: {valid_pieces_for_center}"
-            )
+            selected_piece_key = choice(list(valid_pieces_for_center.keys()))
+            selected_move = choice(valid_pieces_for_center[selected_piece_key])
 
-        print(f"Minhas peças ameaçam as seguintes casas: {my_threats}")
-        print(f"Peças do oponente ameaçam as seguintes casas: {opponet_threats}")
-        print(
-            f"Peças que o oponente ameaça: {get_captureble_pieces(board, attacking_color=opponet)}"
-        )
+            posicao_atual = -1
+
+            for i in range(64):
+                if board[i] and board[i] == selected_piece_key.rsplit("-", 1)[0]:
+                    posicao_atual = i + 1
+                    break
+
+            if posicao_atual != -1:
+                modify_board_with_move(board, posicao_atual, selected_move)
+                print(f"Movendo peça na casa {posicao_atual} para {selected_move}.")
 
     elif game_stage == "middlegame":
         print("Estratégia: Táticas, ataques e defesas.")

@@ -122,11 +122,11 @@ def clicar_casa(event):
             board[origem - 1] = None
             board[destino - 1] = info_peca["nome"]
 
-            atualizar_canvas_com_board()
-            print(f"Movido de {origem} para {destino}")
-
             # 3. Vez do computador (movimento aleatório para teste)
             execute_simple_chess_engine(playing_as="black", board=board)
+
+            atualizar_canvas_com_board()
+            print(f"Movido de {origem} para {destino}")
         else:
             print("Movimento inválido")
 
