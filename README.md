@@ -2,6 +2,8 @@
 
 A lightweight chess engine with a graphical interface built using Python and Tkinter.
 
+![Chess Engine Screenshot](./screenshots/chess.png)
+
 ## Features
 
 - Interactive chessboard GUI (8x8 grid)
@@ -56,4 +58,3 @@ simple_chess_engine/
 - All piece types and movement patterns
 - Game state management
 - Move history and undo functionality
-# simple_chess_engine
