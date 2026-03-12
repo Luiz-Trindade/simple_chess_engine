@@ -124,6 +124,7 @@ def clicar_casa(event):
             board[destino - 1] = info_peca["nome"]
 
             # 3. Vez do computador (movimento aleatório para teste)
+            sleep(0.5)  # Pequena pausa para visualização
             execute_simple_chess_engine(playing_as="black", board=board)
 
             atualizar_canvas_com_board()

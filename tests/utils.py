@@ -153,18 +153,29 @@ def verify_move(piece, start, end, color="white"):
 
     # Peão (Pawn)
     if piece == "pawn":
-        if color == "white":
-            # Movimento normal: 1 casa para frente (diff = 8)
-            # Movimento inicial: 2 casas para frente (diff = 16) se estiver na linha inicial
-            if start in white_pawns:
-                return diff == 8 or (diff == 16 and start in white_pawns)
+        # 1. Movimento de captura (diagonal)
+        # Se a diferença for 7 ou 9 (dependendo da direção), ele só pode mover
+        # SE houver uma peça inimiga na casa de destino.
+        if diff in [7, 9]:
+            peca_destino = board[end - 1]
+            if peca_destino is not None:
+                cor_destino = peca_destino.split("-")[0]
+                return color != cor_destino  # Retorna True se for inimigo
+            return (
+                False  # Se a casa estiver vazia, não pode capturar (exceto En Passant)
+            )
+
+        # 2. Movimento normal (frente)
+        # Se a diferença for 8 ou 16, deve garantir que o destino esteja VAZIO
+        if board[end - 1] is None:
+            if color == "white":
+                # Lógica branca...
+                if start in white_pawns:
+                    return diff == 8 or (diff == 16 and board[start + 7] is None)
+                return diff == 8
             else:
-                return diff == 8 and end - start == 8
-        else:
-            # Movimento normal: 1 casa para frente (diff = 8)
-            # Movimento inicial: 2 casas para frente (diff = 16) se estiver na linha inicial
-            if start in black_pawns:
-                return diff == 8 or (diff == 16 and start in black_pawns)
-            else:
-                return diff == 8 and end - start == -8
-    return False
+                # Lógica preta...
+                if start in black_pawns:
+                    return diff == 8 or (diff == 16 and board[start - 9] is None)
+                return diff == 8
+        return False
