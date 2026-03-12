@@ -1,5 +1,22 @@
 from utils import *
 
+board_center_squares = [27, 28, 29, 30, 31, 35, 36, 37, 38, 39]
+
+
+def detect_game_stage(board):
+    """
+    Detecta a fase do jogo (abertura, meio-jogo, final) com base na quantidade de peças restantes no tabuleiro.
+    """
+    total_pecas = sum(1 for p in board if p is not None)
+
+    if total_pecas > 20:
+        return "oppening"
+    elif 10 < total_pecas <= 20:
+        return "middlegame"
+    else:
+        return "final"
+
+
 def gerar_mapa_ameacas(board, verify="white"):
     """
     Lista todas as casas 'ameaçadas' ou 'controladas' por peças brancas ou pretas.
@@ -39,6 +56,56 @@ def gerar_mapa_ameacas(board, verify="white"):
     return {c for c in casas_controladas if 1 <= c <= 64}
 
 
+def get_positions_of_pieces(board, color="white"):
+
+    pass
+
+
+def calculate_valid_moves(calculate_for="black", board=[]):
+    """
+    Função para calcular todos os movimentos válidos para as peças de um jogador específico (preto ou branco).
+    """
+
+    pieces_and_valid_moves = {}
+    piece_count = {}
+
+    for i in range(64):
+        peca = board[i]
+        if peca and peca.startswith(calculate_for):
+            peca_name = peca.split("-")[1]
+            posicao_atual = i + 1
+
+            # Contar peças do mesmo tipo
+            if peca_name not in piece_count:
+                piece_count[peca_name] = 0
+            piece_count[peca_name] += 1
+
+            valid_moves_for_piece = []
+
+            for destino in range(1, 65):
+                if verify_move(
+                    piece=peca_name,
+                    start=posicao_atual,
+                    end=destino,
+                    color=calculate_for,
+                ):
+
+                    # Peças de "salto" ou curto alcance não precisam checar caminho livre
+                    if peca_name in ["knight"]:
+                        valid_moves_for_piece.append(destino)
+
+                    # Peças "deslizantes" precisam de caminho limpo
+                    elif peca_name in ["rook", "bishop", "queen", "king", "pawn"]:
+                        if path_is_clear(posicao_atual, destino):
+                            valid_moves_for_piece.append(destino)
+
+            # Criar chave com número incrementado
+            peca_key = f"{calculate_for}-{peca_name}-{piece_count[peca_name]}"
+            pieces_and_valid_moves[peca_key] = valid_moves_for_piece
+
+    return pieces_and_valid_moves
+
+
 def execute_simple_chess_engine(playing_as="black", board=[]):
     """
     Função simples para simular o movimento do computador.
@@ -60,3 +127,19 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
 
     print(f"Casas ameaçadas por {opponet}: {len(opponet_threats)}")
     print(f"Casas ameaçadas por {playing_as}: {len(my_threats)}")
+
+    game_stage = detect_game_stage(board)
+    print(f"Fase do jogo: {game_stage}")
+    
+    my_valid_moves = calculate_valid_moves(calculate_for=playing_as, board=board)
+    print(calculate_valid_moves(calculate_for="white", board=board))
+
+    if game_stage == "oppening":
+        print("Estratégia: Controle do centro e desenvolvimento de peças.")
+        print(f"Movimentos válidos para minhas peças: {my_valid_moves}")
+
+    elif game_stage == "middlegame":
+        print("Estratégia: Táticas, ataques e defesas.")
+
+    else:
+        print("Estratégia: Simplificação e promoção de peões.")

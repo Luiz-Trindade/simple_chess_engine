@@ -64,13 +64,31 @@ def path_is_clear(start, end):
     return True
 
 
+def verify_if_square_is_free(peca_origem, position):
+    """
+    Verifica se a casa de destino está livre e printa a interação.
+    peca_origem: O nome da peça que está tentando se mover (ex: 'white-queen')
+    position: O número da casa de destino (1 a 64)
+    """
+    peca_destino = board[position - 1]
+
+    if peca_destino is None:
+        print(f"[{peca_origem}] quer mover para a casa {position}, que está LIVRE.")
+        return True
+    else:
+        print(
+            f"[{peca_origem}] quer mover para a casa {position}, mas está OCUPADA por [{peca_destino}]."
+        )
+        return False
+
+
 # Falta implementar a lógica de movimento do peão
-def verify_move(piece, start, end, type_piece=None):
-    if start == end:
+def verify_move(piece, start, end, color="white"):
+    if start == end or not verify_if_square_is_free(piece, end):
         return False  # A peça não se moveu
 
     diff = abs(start - end)
-    # pawn_diff = 8 if type_piece == "white" else -8
+    # pawn_diff = 8 if color == "white" else -8
 
     # Cavalo (Knight) - Lógica de distância (L)
     if piece == "knight":
@@ -108,7 +126,7 @@ def verify_move(piece, start, end, type_piece=None):
 
     # Peão (Pawn)
     if piece == "pawn":
-        if type_piece == "white":
+        if color == "white":
             # Movimento normal: 1 casa para frente (diff = 8)
             # Movimento inicial: 2 casas para frente (diff = 16) se estiver na linha inicial
             if start in white_pawns:
@@ -123,24 +141,6 @@ def verify_move(piece, start, end, type_piece=None):
             else:
                 return diff == 8 and end - start == -8
     return False
-
-
-def verify_if_square_is_free(peca_origem, position):
-    """
-    Verifica se a casa de destino está livre e printa a interação.
-    peca_origem: O nome da peça que está tentando se mover (ex: 'white-queen')
-    position: O número da casa de destino (1 a 64)
-    """
-    peca_destino = board[position - 1]
-
-    if peca_destino is None:
-        print(f"[{peca_origem}] quer mover para a casa {position}, que está LIVRE.")
-        return True
-    else:
-        print(
-            f"[{peca_origem}] quer mover para a casa {position}, mas está OCUPADA por [{peca_destino}]."
-        )
-        return False
 
 
 # def gerar_mapa_ameacas(board, verify="white"):

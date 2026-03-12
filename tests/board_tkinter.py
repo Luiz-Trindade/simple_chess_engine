@@ -110,8 +110,8 @@ def clicar_casa(event):
 
         # Validação gráfica e lógica
         if (
-            verify_move(nome_curto, origem, destino, type_piece="white")
-            and verify_if_square_is_free(info_peca["nome"], destino)
+            verify_move(nome_curto, origem, destino, color="white")
+            # and verify_if_square_is_free(info_peca["nome"], destino)
             and tipo_peca == "white"
         ):
             # 1. Move a imagem na tela
