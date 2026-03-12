@@ -153,29 +153,47 @@ def verify_move(piece, start, end, color="white"):
 
     # Peão (Pawn)
     if piece == "pawn":
-        # 1. Movimento de captura (diagonal)
-        # Se a diferença for 7 ou 9 (dependendo da direção), ele só pode mover
-        # SE houver uma peça inimiga na casa de destino.
-        if diff in [7, 9]:
+        delta = (
+            end - start
+        )  # Mantém o sinal: Positivo = avança (branca), Negativo = avança (preta)
+
+        # 1. Captura (Diagonal): O peão captura em delta 7 ou 9 (branca) ou -7 ou -9 (preta)
+        if delta in [7, 9, -7, -9]:
             peca_destino = board[end - 1]
             if peca_destino is not None:
                 cor_destino = peca_destino.split("-")[0]
-                return color != cor_destino  # Retorna True se for inimigo
-            return (
-                False  # Se a casa estiver vazia, não pode capturar (exceto En Passant)
-            )
+                # Apenas captura se for cor diferente e se o delta estiver na direção certa
+                if color != cor_destino:
+                    if (color == "white" and delta in [7, 9]) or (
+                        color == "black" and delta in [-7, -9]
+                    ):
+                        return True
+            return False
 
-        # 2. Movimento normal (frente)
-        # Se a diferença for 8 ou 16, deve garantir que o destino esteja VAZIO
+        # 2. Movimento normal (Frente): Apenas em casas vazias
+        # Brancas: delta 8 ou 16. Pretas: delta -8 ou -16
         if board[end - 1] is None:
             if color == "white":
-                # Lógica branca...
-                if start in white_pawns:
-                    return diff == 8 or (diff == 16 and board[start + 7] is None)
-                return diff == 8
-            else:
-                # Lógica preta...
-                if start in black_pawns:
-                    return diff == 8 or (diff == 16 and board[start - 9] is None)
-                return diff == 8
+                # Avanço de 1 casa
+                if delta == 8:
+                    return True
+                # Avanço inicial de 2 casas (checa se a casa intermediária também está vazia)
+                if (
+                    delta == 16
+                    and start in white_pawns
+                    and board[start + 8 - 1] is None
+                ):
+                    return True
+            else:  # color == "black"
+                # Avanço de 1 casa
+                if delta == -8:
+                    return True
+                # Avanço inicial de 2 casas
+                if (
+                    delta == -16
+                    and start in black_pawns
+                    and board[start - 8 - 1] is None
+                ):
+                    return True
+
         return False

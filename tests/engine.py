@@ -236,7 +236,6 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
                         f"Peça {piece} tem os seguintes movimentos válidos para o centro: {moves}"
                     )
 
-        # Selecionar das peças válidas, aquelas ameaçam o centro
         # Selecionar das peças válidas, aquelas que ameaçam o centro
         if valid_pieces_for_center:
             # 1. Escolha a peça e o movimento
