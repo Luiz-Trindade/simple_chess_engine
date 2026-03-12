@@ -64,28 +64,27 @@ def path_is_clear(start, end):
     return True
 
 
-def verify_if_square_is_free(peca_origem, position):
+def verify_target_square(cor_origem, position):
     """
-    Verifica se a casa de destino está livre e printa a interação.
-    peca_origem: O nome da peça que está tentando se mover (ex: 'white-queen')
-    position: O número da casa de destino (1 a 64)
+    Verifica se a casa de destino está vazia OU ocupada por uma peça inimiga.
     """
     peca_destino = board[position - 1]
 
     if peca_destino is None:
-        print(f"[{peca_origem}] quer mover para a casa {position}, que está LIVRE.")
-        return True
+        return True  # Casa vazia, pode mover
+
+    cor_destino = peca_destino.split("-")[0]
+    if cor_origem != cor_destino:
+        return True  # É uma peça inimiga, pode capturar!
     else:
-        print(
-            f"[{peca_origem}] quer mover para a casa {position}, mas está OCUPADA por [{peca_destino}]."
-        )
-        return False
+        return False  # É uma peça amiga, movimento bloqueado
 
 
 # Falta implementar a lógica de movimento do peão
 def verify_move(piece, start, end, color="white"):
-    if start == end or not verify_if_square_is_free(piece, end):
-        return False  # A peça não se moveu
+    # Agora passamos a 'color' para saber se o alvo é amigo ou inimigo
+    if start == end or not verify_target_square(color, end):
+        return False  # A peça não se moveu ou bateu num aliado
 
     diff = abs(start - end)
     # pawn_diff = 8 if color == "white" else -8

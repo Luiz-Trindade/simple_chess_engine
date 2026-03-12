@@ -17,6 +17,54 @@ def detect_game_stage(board):
         return "final"
 
 
+def gerar_ameacas_peca(board, posicao_origem):
+    """
+    Lista todas as casas ameaçadas por uma peça específica em uma posição.
+    posicao_origem: Inteiro (1-64)
+    """
+    ameacas = set()
+    peca = board[posicao_origem - 1]
+
+    if not peca:
+        return ameacas
+
+    tipo_peca = peca.split("-")[1]
+    color = peca.split("-")[0]  # "white" ou "black"
+
+    # 1. Lógica para PEÕES (Diferença de direção baseado na cor)
+    if tipo_peca == "pawn":
+        # Brancas sobem (somam), Pretas descem (subtraem)
+        direcao = 8 if color == "white" else -8
+        borda = verify_if_is_border(posicao_origem)
+
+        # Ameaças diagonais
+        if borda != "left":
+            ameacas.add(posicao_origem + direcao - 1)
+        if borda != "right":
+            ameacas.add(posicao_origem + direcao + 1)
+
+    # 2. Lógica para as demais peças
+    else:
+        for destino in range(1, 65):
+            if destino == posicao_origem:
+                continue
+
+            if verify_move(tipo_peca, posicao_origem, destino, color):
+                # Peças de salto
+                if tipo_peca in ["knight"]:
+                    ameacas.add(destino)
+                    print(f"{peca} ameaça a casa {destino} (movimento de salto).")
+
+                # Peças deslizantes
+                elif tipo_peca in ["rook", "bishop", "queen", "king"]:
+                    if path_is_clear(posicao_origem, destino):
+                        ameacas.add(destino)
+                        print(f"{peca} ameaça a casa {destino} (caminho limpo).")
+
+    # Filtra apenas casas válidas no tabuleiro
+    return {c for c in ameacas if 1 <= c <= 64}
+
+
 def gerar_mapa_ameacas(board, verify="white"):
     """
     Lista todas as casas 'ameaçadas' ou 'controladas' por peças brancas ou pretas.
@@ -44,11 +92,11 @@ def gerar_mapa_ameacas(board, verify="white"):
                 if verify_move(tipo_peca, posicao_atual, destino):
 
                     # Peças de "salto" ou curto alcance não precisam checar caminho livre
-                    if tipo_peca in ["knight", "king"]:
+                    if tipo_peca in ["knight"]:
                         casas_controladas.add(destino)
 
                     # Peças "deslizantes" precisam de caminho limpo
-                    elif tipo_peca in ["rook", "bishop", "queen"]:
+                    elif tipo_peca in ["rook", "bishop", "queen", "king"]:
                         if path_is_clear(posicao_atual, destino):
                             casas_controladas.add(destino)
 
@@ -106,6 +154,36 @@ def calculate_valid_moves(calculate_for="black", board=[]):
     return pieces_and_valid_moves
 
 
+def get_captureble_pieces(board, attacking_color="white"):
+    """
+    Função para identificar quais peças do oponente estão ameaçadas por um jogador específico.
+    """
+    threatened_pieces = []
+
+    for i in range(64):
+        peca = board[i]
+        if peca and peca.startswith(attacking_color):
+            posicao_atual = i + 1
+            ameacas = gerar_ameacas_peca(board, posicao_atual)
+
+            for ameaca in ameacas:
+                peca_ameacada = board[ameaca - 1]
+                if peca_ameacada and not peca_ameacada.startswith(attacking_color):
+                    threatened_pieces.append((peca_ameacada, ameaca))
+
+    return threatened_pieces
+
+
+def modify_board_with_move(board, start, end):
+    """
+    Função para modificar o estado do tabuleiro após um movimento.
+    """
+    piece = board[start - 1]
+    board[start - 1] = None
+    board[end - 1] = piece
+    return board
+
+
 def execute_simple_chess_engine(playing_as="black", board=[]):
     """
     Função simples para simular o movimento do computador.
@@ -120,23 +198,49 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
     print("Bem-vindo ao Simple Chess Engine!")
     print(f"Eu, o computador, estou jogando de '{playing_as}'")
 
+    # Variáveis para avaliação
+    game_stage = detect_game_stage(board)
     opponet = "white" if playing_as == "black" else "black"
-
     opponet_threats = gerar_mapa_ameacas(board, verify=opponet)
     my_threats = gerar_mapa_ameacas(board, verify=playing_as)
-
-    print(f"Casas ameaçadas por {opponet}: {len(opponet_threats)}")
-    print(f"Casas ameaçadas por {playing_as}: {len(my_threats)}")
-
-    game_stage = detect_game_stage(board)
-    print(f"Fase do jogo: {game_stage}")
-    
     my_valid_moves = calculate_valid_moves(calculate_for=playing_as, board=board)
-    print(calculate_valid_moves(calculate_for="white", board=board))
+    missions = {
+        "dominate_center": 0,
+        "develop_pieces": 0,
+    }
+
+    print(f"Fase do jogo: {game_stage}")
+    print(f"Casas ameaçadas por '{opponet}': {len(opponet_threats)}")
+    print(f"Casas ameaçadas por '{playing_as}': {len(my_threats)}")
 
     if game_stage == "oppening":
         print("Estratégia: Controle do centro e desenvolvimento de peças.")
         print(f"Movimentos válidos para minhas peças: {my_valid_moves}")
+
+        # Peças que têm movimentos válidos para o centro recebem prioridade
+        valid_pieces_for_center = {}
+
+        # Selecionar as peças e seus movimentos válidos que mais chegam perto do centro
+        for piece, moves in my_valid_moves.items():
+            for move in moves:
+                # Se o movimento leva a uma casa central ou próxima, marca essa peça como prioritária
+                if move in board_center_squares:
+                    valid_pieces_for_center[piece] = moves
+                    print(
+                        f"Peça {piece} tem os seguintes movimentos válidos para o centro: {moves}"
+                    )
+
+        # Selecionar das peças válidas, aquelas ameaçam o centro
+        if valid_pieces_for_center:
+            print(
+                f"Peças com movimentos válidos para o centro: {valid_pieces_for_center}"
+            )
+
+        print(f"Minhas peças ameaçam as seguintes casas: {my_threats}")
+        print(f"Peças do oponente ameaçam as seguintes casas: {opponet_threats}")
+        print(
+            f"Peças que o oponente ameaça: {get_captureble_pieces(board, attacking_color=opponet)}"
+        )
 
     elif game_stage == "middlegame":
         print("Estratégia: Táticas, ataques e defesas.")
