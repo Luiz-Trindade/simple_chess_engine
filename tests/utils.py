@@ -1,10 +1,14 @@
 history = []
 
 board = [None for _ in range(64)]
+
 border_top = [1, 2, 3, 4, 5, 6, 7, 8]
 border_down = [57, 58, 59, 60, 61, 62, 63, 64]
 border_left = [1, 9, 17, 25, 33, 41, 49, 57]
 border_right = [8, 16, 24, 32, 40, 48, 56, 64]
+
+white_pawns = [9, 10, 11, 12, 13, 14, 15, 16]
+black_pawns = [49, 50, 51, 52, 53, 54, 55, 56]
 
 
 def verify_if_is_border(position):
@@ -61,11 +65,12 @@ def path_is_clear(start, end):
 
 
 # Falta implementar a lógica de movimento do peão
-def verify_move(piece, start, end):
+def verify_move(piece, start, end, type_piece=None):
     if start == end:
         return False  # A peça não se moveu
 
     diff = abs(start - end)
+    # pawn_diff = 8 if type_piece == "white" else -8
 
     # Cavalo (Knight) - Lógica de distância (L)
     if piece == "knight":
@@ -101,9 +106,22 @@ def verify_move(piece, start, end):
             (diff in [7, 8, 9]) or verify_if_is_same_line(start, end)
         )
 
+    # Peão (Pawn)
     if piece == "pawn":
-        pass
-
+        if type_piece == "white":
+            # Movimento normal: 1 casa para frente (diff = 8)
+            # Movimento inicial: 2 casas para frente (diff = 16) se estiver na linha inicial
+            if start in white_pawns:
+                return diff == 8 or (diff == 16 and start in white_pawns)
+            else:
+                return diff == 8 and end - start == 8
+        else:
+            # Movimento normal: 1 casa para frente (diff = 8)
+            # Movimento inicial: 2 casas para frente (diff = 16) se estiver na linha inicial
+            if start in black_pawns:
+                return diff == 8 or (diff == 16 and start in black_pawns)
+            else:
+                return diff == 8 and end - start == -8
     return False
 
 
@@ -178,4 +196,7 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
     print("Bem-vindo ao Simple Chess Engine!")
     print(f"Eu, o computador, estou jogando de '{playing_as}'")
 
-    print(gerar_mapa_ameacas(board, verify="white"))
+    opponet = "white" if playing_as == "black" else "black"
+
+    opponet_threats = gerar_mapa_ameacas(board, verify=opponet)
+    my_threats = gerar_mapa_ameacas(board, verify=playing_as)

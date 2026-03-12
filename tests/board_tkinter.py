@@ -101,15 +101,15 @@ def clicar_casa(event):
         destino = casa_clicada
         info_peca = pecas_no_canvas[peca_selecionada_id]
 
-        # O nome da peça é algo como 'white-queen', e queremos extrair 'queen' para a lógica de movimento
+        # O tipo da peça é algo como 'white-queen', e queremos extrair 'white' para validar se o jogador pode mover essa peça
         tipo_peca = info_peca["nome"].split("-")[0]
 
-        # O verify_move assume o nome da peça (ex: 'queen')
+        # O nome da peça é algo como 'white-queen', e queremos extrair 'queen' para a lógica de movimento
         nome_curto = info_peca["nome"].split("-")[1]
 
         # Validação gráfica e lógica
         if (
-            verify_move(nome_curto, origem, destino)
+            verify_move(nome_curto, origem, destino, type_piece="white")
             and verify_if_square_is_free(info_peca["nome"], destino)
             and tipo_peca == "white"
         ):
