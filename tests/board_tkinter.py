@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from utils import *
 from engine import *
+from time import sleep
 
 # Mapeamento inicial das posições (Casa 1 = a1, Casa 64 = h8)
 posicoes_iniciais = {

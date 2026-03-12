@@ -237,20 +237,40 @@ def execute_simple_chess_engine(playing_as="black", board=[]):
                     )
 
         # Selecionar das peças válidas, aquelas ameaçam o centro
+        # Selecionar das peças válidas, aquelas que ameaçam o centro
         if valid_pieces_for_center:
+            # 1. Escolha a peça e o movimento
             selected_piece_key = choice(list(valid_pieces_for_center.keys()))
             selected_move = choice(valid_pieces_for_center[selected_piece_key])
 
+            # 2. Extrair informações para localizar a peça no board
+            # Formato da chave: "black-pawn-1"
+            parts = selected_piece_key.split("-")
+            color_peca = parts[0]
+            tipo_peca = parts[1]
+            instancia_peca = int(parts[2])
+
             posicao_atual = -1
+            count = 0
 
+            # 3. Localizar a posição correta (índice 1-64)
             for i in range(64):
-                if board[i] and board[i] == selected_piece_key.rsplit("-", 1)[0]:
-                    posicao_atual = i + 1
-                    break
+                peca_no_board = board[i]
+                if peca_no_board and peca_no_board == f"{color_peca}-{tipo_peca}":
+                    count += 1
+                    if count == instancia_peca:
+                        posicao_atual = i + 1
+                        break
 
+            # 4. Executar o movimento APÓS localizar a posição
             if posicao_atual != -1:
                 modify_board_with_move(board, posicao_atual, selected_move)
-                print(f"Movendo peça na casa {posicao_atual} para {selected_move}.")
+                print(f"Peça selecionada: {selected_piece_key}")
+                print(f"Movendo de {posicao_atual} para {selected_move}.")
+            else:
+                print(
+                    f"Erro: Não foi possível localizar {selected_piece_key} no tabuleiro."
+                )
 
     elif game_stage == "middlegame":
         print("Estratégia: Táticas, ataques e defesas.")
